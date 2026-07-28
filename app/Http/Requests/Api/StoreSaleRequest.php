@@ -27,4 +27,35 @@ class StoreSaleRequest extends FormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ];
     }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'items' => 'items list',
+            'items.*.product_id' => 'product ID',
+            'items.*.quantity' => 'quantity',
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'At least one product item is required.',
+            'items.min' => 'At least one product item must be included in the sale.',
+            'items.*.product_id.required' => 'The product ID is required for each item.',
+            'items.*.product_id.exists' => 'The selected product does not exist.',
+            'items.*.quantity.required' => 'The quantity is required for each item.',
+            'items.*.quantity.min' => 'The quantity for each product must be at least 1.',
+        ];
+    }
 }
