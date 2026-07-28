@@ -2,6 +2,8 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\Sale;
+use App\Models\SaleDetail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -225,6 +227,63 @@ class SaleTest extends TestCase
             ->assertJsonStructure(['message', 'errors'])
             ->assertJsonValidationErrors([
                 'items.0.quantity' => 'The quantity for each product must be at least 1.'
+            ]);
+    }
+
+    #[Test]
+    public function userCanListSalesSuccessfully(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $product = Product::create([
+            'name' => 'Monitor Gamer',
+            'price' => 300.0,
+            'stock' => 5,
+        ]);
+
+        $sale = Sale::create([
+            'user_id' => $user->id,
+            'total' => 600.0,
+        ]);
+
+        SaleDetail::create([
+            'sale_id' => $sale->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'price' => $product->price,
+            'subtotal' => 600.0,
+        ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer {$token}",
+        ])->getJson('/api/sales');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'total',
+                        'created_at',
+                        'details' => [
+                            '*' => [
+                                'product',
+                                'quantity',
+                                'subtotal',
+                            ]
+                        ]
+                    ]
+                ],
+                'links',
+                'meta'
+            ])
+            ->assertJsonFragment([
+                'id' => $sale->id,
+                'total' => 600.0,
+                'product' => 'Monitor Gamer',
+                'quantity' => 2,
+                'subtotal' => 600.0,
             ]);
     }
 }
