@@ -13,4 +13,22 @@ class SaleDetail extends Model
         'price',
         'subtotal'
     ];
+
+    /**
+     * Get the sale that owns this detail.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Sale, SaleDetail>
+     */
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    /**
+     * Get the product associated with this sale detail.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Product, SaleDetail>
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
