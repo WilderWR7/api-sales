@@ -5,11 +5,30 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreSaleRequest;
 use App\Models\Sale;
+use App\Http\Resources\Api\SaleResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class SaleController extends Controller
 {
+    /**
+     * Display a listing of the sales.
+     *
+     * @param Request $request
+     * @return AnonymousResourceCollection
+     */
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $perPage = (int) $request->query('per_page', 10);
+
+        $sales = Sale::with('details.product')
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
+
+        return SaleResource::collection($sales);
+    }
     /**
      * Store a newly created sale in storage.
      *
