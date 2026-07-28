@@ -46,4 +46,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the sales associated with the user.
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Sale, User>
+     */
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
 }
