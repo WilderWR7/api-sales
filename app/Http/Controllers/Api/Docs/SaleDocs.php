@@ -146,4 +146,48 @@ class SaleDocs
     public function store()
     {
     }
+
+    #[OA\Delete(
+        path: "/sales/{id}",
+        summary: "Delete a sale",
+        description: "Deletes a sale, removes its details, and restores product stock.",
+        tags: ["Sales"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                description: "ID of the sale to delete",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: Response::HTTP_OK,
+                description: "Sale deleted successfully",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Sale deleted successfully")
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: Response::HTTP_NOT_FOUND,
+                description: "Sale not found",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Sale not found")
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: Response::HTTP_UNAUTHORIZED,
+                description: "Unauthorized"
+            )
+        ]
+    )]
+    public function destroy()
+    {
+    }
 }
