@@ -286,4 +286,75 @@ class SaleTest extends TestCase
                 'subtotal' => 600.0,
             ]);
     }
+
+    #[Test]
+    public function userCanDeleteSaleSuccessfully(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $initialStock = 5;
+        $purchasedQuantity = 2;
+
+        $product = Product::create([
+            'name' => 'Tablet Android',
+            'price' => 150.0,
+            'stock' => $initialStock,
+        ]);
+
+        // 1. Create sale
+        $createResponse = $this->withHeaders([
+            'Authorization' => "Bearer {$token}",
+        ])->postJson('/api/sales', [
+            'items' => [
+                [
+                    'product_id' => $product->id,
+                    'quantity' => $purchasedQuantity,
+                ]
+            ]
+        ]);
+
+        $createResponse->assertCreated();
+        $saleId = $createResponse->json('sale_id');
+
+        // Verify stock was decremented after creation
+        $product->refresh();
+        $this->assertEquals($initialStock - $purchasedQuantity, $product->stock);
+
+        // 2. Delete sale
+        $deleteResponse = $this->withHeaders([
+            'Authorization' => "Bearer {$token}",
+        ])->deleteJson("/api/sales/{$saleId}");
+
+        $deleteResponse->assertOk()
+            ->assertJson([
+                'message' => 'Sale deleted successfully',
+            ]);
+
+        // 3. Verify stock was restored back to initial value
+        $product->refresh();
+        $this->assertEquals($initialStock, $product->stock);
+
+        // 4. Verify sale was soft deleted and details were removed
+        $this->assertSoftDeleted('sales', ['id' => $saleId]);
+        $this->assertDatabaseMissing('sale_details', ['sale_id' => $saleId]);
+    }
+
+    #[Test]
+    public function userCannotDeleteNonExistentSale(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $nonExistentSaleId = 99999;
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer {$token}",
+        ])->deleteJson("/api/sales/{$nonExistentSaleId}");
+
+        $response->assertNotFound()
+            ->assertJson([
+                'message' => "No query results for model [App\\Models\\Sale] {$nonExistentSaleId}",
+            ]);
+    }
 }
