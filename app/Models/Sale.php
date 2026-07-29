@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Sale extends Model
 {
-    // use SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -77,6 +78,26 @@ class Sale extends Model
             SaleDetail::insert($detailsToInsert);
 
             return $sale;
+        });
+    }
+
+    /**
+     * Delete the sale, its details, and restore the stock of all associated products.
+     *
+     * @return void
+     */
+    public function deleteWithStockRestoration(): void
+    {
+        DB::transaction(function () {
+            $details = $this->details->sortBy('product_id');
+            foreach ($details as $detail) {
+                if ($detail->product_id) {
+                    Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
+                }
+            }
+
+            $this->details()->delete();
+            $this->delete();
         });
     }
 

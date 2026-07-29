@@ -55,4 +55,21 @@ class SaleController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
+
+    /**
+     * Remove the specified sale from storage.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $sale = Sale::with('details')->findOrFail($id);
+
+        $sale->deleteWithStockRestoration();
+
+        return response()->json([
+            'message' => 'Sale deleted successfully',
+        ], Response::HTTP_OK);
+    }
 }
