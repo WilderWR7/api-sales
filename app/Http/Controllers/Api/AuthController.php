@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Services\ActivityLogger;
+
 class AuthController extends Controller
 {
     /**
@@ -27,6 +29,12 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        ActivityLogger::use('auth')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->withProperties(['email' => $user->email, 'name' => $user->name])
+            ->log('User registered');
 
         return response()->json([
             'message' => 'User registered successfully',
@@ -59,6 +67,12 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        ActivityLogger::use('auth')
+            ->performedOn($user)
+            ->causedBy($user)
+            ->withProperties(['email' => $user->email])
+            ->log('User logged in');
+
         return response()->json([
             'message' => 'User logged in successfully',
             'user' => $user,
@@ -72,6 +86,16 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = $request->user();
+
+        if ($user) {
+            ActivityLogger::use('auth')
+                ->performedOn($user)
+                ->causedBy($user)
+                ->withProperties(['email' => $user->email])
+                ->log('User logged out');
+        }
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);

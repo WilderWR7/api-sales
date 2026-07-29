@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LogsActivity;
 
 class Sale extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
+
+    protected string $logName = 'sales';
 
     protected $fillable = [
         'user_id',
@@ -92,7 +94,11 @@ class Sale extends Model
             $details = $this->details->sortBy('product_id');
             foreach ($details as $detail) {
                 if ($detail->product_id) {
-                    Product::where('id', $detail->product_id)->increment('stock', $detail->quantity);
+                    $product = Product::find($detail->product_id);
+                    if ($product) {
+                        $product->stock += $detail->quantity;
+                        $product->save();
+                    }
                 }
             }
 

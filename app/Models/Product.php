@@ -3,9 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\LogsActivity;
 
 class Product extends Model
 {
+    use LogsActivity;
+
+    protected string $logName = 'products';
+
     protected $fillable = [
         'name',
         'price',
