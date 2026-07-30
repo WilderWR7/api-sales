@@ -22,10 +22,17 @@ class ProductDocs
     #[OA\Get(
         path: "/products",
         summary: "List all products",
-        description: "Returns a complete list of products registered in the database.",
+        description: "Returns a paginated list of products registered in the database, ordered by stock availability and sales count. Supports filtering by product name.",
         tags: ["Products"],
         security: [["bearerAuth" => []]],
         parameters: [
+            new OA\Parameter(
+                name: "search",
+                in: "query",
+                description: "Filter products by name (case-insensitive search)",
+                required: false,
+                schema: new OA\Schema(type: "string")
+            ),
             new OA\Parameter(
                 name: "page",
                 in: "query",

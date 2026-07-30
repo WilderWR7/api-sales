@@ -229,9 +229,18 @@
                     "Products"
                 ],
                 "summary": "List all products",
-                "description": "Returns a complete list of products registered in the database.",
+                "description": "Returns a paginated list of products registered in the database, ordered by stock availability and sales count. Supports filtering by product name.",
                 "operationId": "caa7cdee13c3405bc63dbfaa5daf1399",
                 "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filter products by name (case-insensitive search)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "page",
                         "in": "query",
@@ -335,6 +344,84 @@
                 ]
             }
         },
+        "/sales/summary": {
+            "get": {
+                "tags": [
+                    "Sales"
+                ],
+                "summary": "Get sales summary statistics",
+                "description": "Returns summary statistics including total revenue, sales count, average ticket, items sold, today's revenue, cancelled sales count/revenue, and top selling product.",
+                "operationId": "64d97e61ea468019661763b780cc9ac3",
+                "responses": {
+                    "200": {
+                        "description": "Sales summary statistics",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_revenue": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 12500.5
+                                        },
+                                        "total_sales_count": {
+                                            "type": "integer",
+                                            "example": 15
+                                        },
+                                        "average_ticket": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 833.37
+                                        },
+                                        "total_items_sold": {
+                                            "type": "integer",
+                                            "example": 42
+                                        },
+                                        "today_revenue": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 1200
+                                        },
+                                        "cancelled_sales_count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "cancelled_revenue": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 450
+                                        },
+                                        "top_product": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Laptop HP",
+                                                    "nullable": true
+                                                },
+                                                "total_quantity": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/sales": {
             "get": {
                 "tags": [
@@ -387,15 +474,14 @@
                                                     },
                                                     "created_at": {
                                                         "type": "string",
-                                                        "example": "2026-01-21"
+                                                        "example": "2026-07-30"
                                                     },
                                                     "details": {
                                                         "type": "array",
                                                         "items": {
                                                             "properties": {
                                                                 "product": {
-                                                                    "type": "string",
-                                                                    "example": "Laptop Lenovo"
+                                                                    "$ref": "#/components/schemas/Product"
                                                                 },
                                                                 "quantity": {
                                                                     "type": "integer",
@@ -409,6 +495,16 @@
                                                             },
                                                             "type": "object"
                                                         }
+                                                    },
+                                                    "user": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Wilder Mayta"
+                                                            }
+                                                        },
+                                                        "type": "object",
+                                                        "nullable": true
                                                     }
                                                 },
                                                 "type": "object"
@@ -487,7 +583,7 @@
                     "Sales"
                 ],
                 "summary": "Create a new sale",
-                "description": "Registers a new sale, creates its details, calculates subtotales/total, and deducts product stock in a single transaction.",
+                "description": "Registers a new sale for the authenticated user, creates its details, calculates subtotals/total, and deducts product stock in a single transaction.",
                 "operationId": "b4025dc8210bcaa3ab214f15ad6eba18",
                 "requestBody": {
                     "required": true,
@@ -495,14 +591,9 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "user_id",
                                     "items"
                                 ],
                                 "properties": {
-                                    "user_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
                                     "items": {
                                         "type": "array",
                                         "items": {

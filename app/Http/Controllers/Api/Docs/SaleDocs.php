@@ -41,17 +41,25 @@ class SaleDocs
                                 properties: [
                                     new OA\Property(property: "id", type: "integer", example: 1),
                                     new OA\Property(property: "total", type: "number", format: "float", example: 16500.0),
-                                    new OA\Property(property: "created_at", type: "string", example: "2026-01-21"),
+                                    new OA\Property(property: "created_at", type: "string", example: "2026-07-30"),
                                     new OA\Property(
                                         property: "details",
                                         type: "array",
                                         items: new OA\Items(
                                             properties: [
-                                                new OA\Property(property: "product", type: "string", example: "Laptop Lenovo"),
+                                                new OA\Property(property: "product", ref: "#/components/schemas/Product"),
                                                 new OA\Property(property: "quantity", type: "integer", example: 2),
                                                 new OA\Property(property: "subtotal", type: "number", format: "float", example: 15000.0)
                                             ]
                                         )
+                                    ),
+                                    new OA\Property(
+                                        property: "user",
+                                        type: "object",
+                                        nullable: true,
+                                        properties: [
+                                            new OA\Property(property: "name", type: "string", example: "Wilder Mayta")
+                                        ]
                                     )
                                 ]
                             )
@@ -94,15 +102,14 @@ class SaleDocs
     #[OA\Post(
         path: "/sales",
         summary: "Create a new sale",
-        description: "Registers a new sale, creates its details, calculates subtotales/total, and deducts product stock in a single transaction.",
+        description: "Registers a new sale for the authenticated user, creates its details, calculates subtotals/total, and deducts product stock in a single transaction.",
         tags: ["Sales"],
         security: [["bearerAuth" => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["user_id", "items"],
+                required: ["items"],
                 properties: [
-                    new OA\Property(property: "user_id", type: "integer", example: 1),
                     new OA\Property(
                         property: "items",
                         type: "array",
