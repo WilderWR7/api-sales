@@ -281,7 +281,7 @@ class SaleTest extends TestCase
             ->assertJsonFragment([
                 'id' => $sale->id,
                 'total' => 600.0,
-                'product' => 'Monitor Gamer',
+                'name' => 'Monitor Gamer',
                 'quantity' => 2,
                 'subtotal' => 600.0,
             ]);

@@ -23,7 +23,7 @@ class SaleController extends Controller
     {
         $perPage = (int) $request->query('per_page', 10);
 
-        $sales = Sale::with('details.product')
+        $sales = Sale::with('details.product', 'user')
             ->orderBy('id', 'desc')
             ->paginate($perPage);
 

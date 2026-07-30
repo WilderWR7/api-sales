@@ -17,7 +17,7 @@ class SaleDetailResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'product' => $this->product?->name,
+            'product' => ProductResource::make($this->product),
             'quantity' => (int) $this->quantity,
             'subtotal' => (float) $this->subtotal,
         ];

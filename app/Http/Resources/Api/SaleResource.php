@@ -21,6 +21,9 @@ class SaleResource extends JsonResource
             'total' => (float) $this->total,
             'created_at' => $this->created_at?->format('Y-m-d'),
             'details' => SaleDetailResource::collection($this->whenLoaded('details')),
+            'user' => $this->whenLoaded('user', fn () => [
+                'name' => $this->user?->name,
+            ]),
         ];
     }
 }
