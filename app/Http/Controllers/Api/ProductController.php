@@ -19,6 +19,7 @@ class ProductController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $perPage = (int) $request->query('per_page', 10);
+        $search = $request->query('search');
 
         $products = Product::select('products.*')
             ->selectRaw('
@@ -28,6 +29,9 @@ class ProductController extends Controller
                     WHERE sale_details.product_id = products.id
                 ) as total_sold
             ')
+            ->when($search, function ($query, $search) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%' . mb_strtolower((string) $search) . '%']);
+            })
             ->orderByRaw('CASE WHEN stock > 0 THEN 1 ELSE 0 END DESC')
             ->orderBy('total_sold', 'desc')
             ->orderBy('id', 'desc')
